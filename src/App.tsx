@@ -32,6 +32,8 @@ export default function App() {
 
   const handleAnswer = (score: number) => {
     const question = shuffledQuestions[currentIdx];
+    if (!question) return;
+
     const newAnswer: Answer = {
       questionId: question.id,
       score,
@@ -68,7 +70,7 @@ export default function App() {
     <div className="min-h-screen bg-[#0a0a0a] text-[#ededed] font-sans overflow-x-hidden selection:bg-neutral-800">
       <AnimatePresence mode="wait">
         {appState === 'landing' && <Landing key="landing" onStart={handleStart} />}
-        {appState === 'quiz' && (
+        {appState === 'quiz' && shuffledQuestions[currentIdx] && (
           <Quiz 
             key={`quiz-${currentIdx}`} 
             question={shuffledQuestions[currentIdx]} 
@@ -76,7 +78,7 @@ export default function App() {
             total={shuffledQuestions.length} 
             onAnswer={handleAnswer} 
             onBack={handleBack} 
-            selectedScore={answers.find(a => a.questionId === shuffledQuestions[currentIdx].id)?.score}
+            selectedScore={answers.find(a => a.questionId === shuffledQuestions[currentIdx]?.id)?.score}
           />
         )}
         {appState === 'calculating' && <Calculating key="calc" onDone={() => setAppState('result')} />}
@@ -124,13 +126,13 @@ function Landing({ onStart }: { onStart: () => void, key?: React.Key }) {
 }
 
 const CIRCLE_OPTIONS = [
-  { score: 100, size: 'h-16 w-16 md:h-20 md:w-20', label: '强烈同意' },
-  { score: 83, size: 'h-12 w-12 md:h-16 md:w-16', label: '' },
-  { score: 66, size: 'h-10 w-10 md:h-12 md:w-12', label: '' },
-  { score: 50, size: 'h-8 w-8 md:h-8 md:w-8', label: '中立' },
-  { score: 33, size: 'h-10 w-10 md:h-12 md:w-12', label: '' },
-  { score: 16, size: 'h-12 w-12 md:h-16 md:w-16', label: '' },
-  { score: 0, size: 'h-16 w-16 md:h-20 md:w-20', label: '强烈不同意' },
+  { score: 100, size: 'h-12 w-12 sm:h-16 sm:w-16 md:h-20 md:w-20', label: '强烈同意' },
+  { score: 83, size: 'h-10 w-10 sm:h-12 sm:w-12 md:h-16 md:w-16', label: '' },
+  { score: 66, size: 'h-8 w-8 sm:h-10 sm:w-10 md:h-12 md:w-12', label: '' },
+  { score: 50, size: 'h-6 w-6 sm:h-8 sm:w-8 md:h-8 md:w-8', label: '中立' },
+  { score: 33, size: 'h-8 w-8 sm:h-10 sm:w-10 md:h-12 md:w-12', label: '' },
+  { score: 16, size: 'h-10 w-10 sm:h-12 sm:w-12 md:h-16 md:w-16', label: '' },
+  { score: 0, size: 'h-12 w-12 sm:h-16 sm:w-16 md:h-20 md:w-20', label: '强烈不同意' },
 ];
 
 function Quiz({ question, currentIndex, total, onAnswer, onBack, selectedScore }: any) {
@@ -140,9 +142,9 @@ function Quiz({ question, currentIndex, total, onAnswer, onBack, selectedScore }
       animate={{ opacity: 1, x: 0 }} 
       exit={{ opacity: 0, x: -20 }}
       transition={{ duration: 0.4, ease: 'easeOut' }}
-      className="flex flex-col items-center justify-center min-h-screen max-w-3xl mx-auto p-6"
+      className="flex flex-col items-center justify-center min-h-screen w-full max-w-3xl mx-auto px-4 sm:px-6 relative overflow-hidden"
     >
-      <div className="absolute top-8 left-8 right-8 flex items-center justify-between pointer-events-none">
+      <div className="absolute top-6 sm:top-8 left-4 right-4 sm:left-8 sm:right-8 flex items-center justify-between pointer-events-none">
         <div className="pointer-events-auto">
           <button 
             onClick={onBack}
@@ -151,49 +153,51 @@ function Quiz({ question, currentIndex, total, onAnswer, onBack, selectedScore }
             <ArrowLeft className="w-5 h-5 text-neutral-400" />
           </button>
         </div>
-        <div className="text-neutral-600 font-mono text-sm tracking-widest">
+        <div className="text-neutral-600 font-mono text-xs sm:text-sm tracking-widest">
           {currentIndex + 1} / {total}
         </div>
       </div>
 
-      <div className="w-full mb-16 text-center">
+      <div className="w-full mb-12 sm:mb-16 text-center mt-12 sm:mt-0">
         <motion.h2 
           key={question.id}
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-xl md:text-3xl lg:text-4xl leading-relaxed md:leading-tight font-medium text-neutral-200"
+          className="text-lg sm:text-xl md:text-3xl lg:text-4xl leading-relaxed md:leading-tight font-medium text-neutral-200"
         >
           {question.text}
         </motion.h2>
       </div>
 
-      <div className="flex w-full items-center justify-between mb-8 relative">
-        {CIRCLE_OPTIONS.map((opt, i) => {
-          const isSelected = selectedScore === opt.score;
-          const isSide = i === 0 || i === 6;
-          const colorClass = i < 3 ? 'border-white/50 hover:border-white' : i > 3 ? 'border-neutral-500/50 hover:border-neutral-500' : 'border-neutral-700 hover:border-neutral-400';
-          const fillClass = isSelected ? (i < 3 ? 'bg-white' : i > 3 ? 'bg-neutral-400' : 'bg-neutral-700') : 'bg-transparent';
+      <div className="w-full max-w-full overflow-visible">
+        <div className="flex w-full items-center justify-between gap-1 sm:gap-4 mb-8 sm:mb-12 relative px-1 sm:px-0">
+          {CIRCLE_OPTIONS.map((opt, i) => {
+            const isSelected = selectedScore === opt.score;
+            const isSide = i === 0 || i === 6;
+            const colorClass = i < 3 ? 'border-white/50 hover:border-white' : i > 3 ? 'border-neutral-500/50 hover:border-neutral-500' : 'border-neutral-700 hover:border-neutral-400';
+            const fillClass = isSelected ? (i < 3 ? 'bg-white' : i > 3 ? 'bg-neutral-400' : 'bg-neutral-700') : 'bg-transparent';
 
-          return (
-            <div key={i} className="flex flex-col items-center gap-4 group cursor-pointer relative" onClick={() => onAnswer(opt.score)}>
-              <div className="relative flex items-center justify-center h-20 w-16 md:w-20">
-                <motion.div
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                  className={`rounded-full border-2 transition-all duration-300 ${opt.size} ${colorClass} ${fillClass}`}
-                />
+            return (
+              <div key={i} className="flex flex-col items-center group cursor-pointer relative" onClick={() => onAnswer(opt.score)}>
+                <div className="relative flex items-center justify-center h-12 w-10 sm:h-16 sm:w-16 md:h-20 md:w-20">
+                  <motion.div
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    className={`rounded-full border-2 transition-all duration-300 ${opt.size} ${colorClass} ${fillClass}`}
+                  />
+                </div>
+                {opt.label && (
+                  <span className={`absolute -bottom-6 sm:-bottom-8 whitespace-nowrap text-[8px] sm:text-xs font-mono tracking-widest text-neutral-500 group-hover:text-neutral-300 ${i===0?'-left-0 sm:-left-2':i===6?'-right-0 sm:-right-2':''}`}>
+                    {opt.label}
+                  </span>
+                )}
               </div>
-              {opt.label && (
-                <span className={`absolute -bottom-8 whitespace-nowrap text-xs font-mono tracking-widest text-neutral-500 group-hover:text-neutral-300 ${i===0?'-left-2':i===6?'-right-2':''}`}>
-                  {opt.label}
-                </span>
-              )}
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
       
-      <div className="flex justify-between w-full max-w-sm mt-4 text-xs font-mono tracking-widest text-neutral-600">
+      <div className="flex justify-between w-full max-w-sm mt-4 text-[10px] sm:text-xs font-mono tracking-widest text-neutral-600">
         <span className="text-neutral-300">同意</span>
         <span>不同意</span>
       </div>
@@ -237,15 +241,17 @@ function Result({ answers, onRestart }: { answers: Answer[], onRestart: () => vo
 
     answers.forEach(ans => {
       const finalScore = ans.reversed ? (100 - ans.score) : ans.score;
-      sums[ans.dimension] += finalScore;
-      counts[ans.dimension] += 1;
+      if (typeof sums[ans.dimension] !== 'undefined') {
+        sums[ans.dimension] += finalScore;
+        counts[ans.dimension] += 1;
+      }
     });
 
     return {
-      focus: sums.focus / counts.focus,
-      energy: sums.energy / counts.energy,
-      texture: sums.texture / counts.texture,
-      coping: sums.coping / counts.coping,
+      focus: counts.focus > 0 ? sums.focus / counts.focus : 50,
+      energy: counts.energy > 0 ? sums.energy / counts.energy : 50,
+      texture: counts.texture > 0 ? sums.texture / counts.texture : 50,
+      coping: counts.coping > 0 ? sums.coping / counts.coping : 50,
     };
   }, [answers]);
 
@@ -258,16 +264,16 @@ function Result({ answers, onRestart }: { answers: Answer[], onRestart: () => vo
         Math.abs(dimensionScores.texture - album.texture) +
         Math.abs(dimensionScores.coping - album.coping);
       
-      const matchPercentage = (1 - (diff / 400)) * 100;
+      const matchPercentage = Math.max(0, (1 - (diff / 400)) * 100);
       return { album, match: matchPercentage, diff };
     }).sort((a, b) => b.match - a.match);
 
     return results;
   }, [dimensionScores]);
 
-  const bestMatch = matchResults[0].match < 20 ? { album: tenthAlbum, match: matchResults[0].match, diff: 0 } : matchResults[0];
-  const secondBest = matchResults[1];
-  const worstMatch = matchResults[matchResults.length - 1];
+  const bestMatch = (matchResults[0] && matchResults[0].match < 20) ? { album: tenthAlbum, match: matchResults[0].match, diff: 0 } : (matchResults[0] || { album: tenthAlbum, match: 0, diff: 0 });
+  const secondBest = matchResults[1] || bestMatch;
+  const worstMatch = matchResults[matchResults.length - 1] || bestMatch;
 
   const radarData = [
     { subject: '聚焦 (宏大)', A: dimensionScores.focus, fullMark: 100 },
@@ -301,18 +307,18 @@ function Result({ answers, onRestart }: { answers: Answer[], onRestart: () => vo
           </motion.div>
 
           {/* Radar Chart */}
-          <div className="h-64 w-full -ml-4 md:-ml-8 opacity-80">
+          <div className="h-48 sm:h-64 w-full -ml-2 sm:-ml-4 md:-ml-8 opacity-80">
             <ResponsiveContainer width="100%" height="100%">
               <RadarChart cx="50%" cy="50%" outerRadius="70%" data={radarData}>
                 <PolarGrid stroke="#333" />
-                <PolarAngleAxis dataKey="subject" tick={{ fill: '#888', fontSize: 12, fontFamily: 'monospace' }} />
+                <PolarAngleAxis dataKey="subject" tick={{ fill: '#888', fontSize: 10, fontFamily: 'monospace' }} />
                 <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
                 <Radar name="You" dataKey="A" stroke="#ffffff" fill="#ffffff" fillOpacity={0.1} strokeWidth={1} />
               </RadarChart>
             </ResponsiveContainer>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-8 border-t border-neutral-800">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 pt-8 border-t border-neutral-800">
             {bestMatch.album.name !== "第十张专辑" && (
               <>
                 <SubResult title="第二契合" match={secondBest} />
@@ -323,7 +329,7 @@ function Result({ answers, onRestart }: { answers: Answer[], onRestart: () => vo
         </div>
 
         {/* Right Side: Cover Art & Actions */}
-        <div className="w-full lg:w-96 flex flex-col items-center">
+        <div className="w-full lg:w-96 flex flex-col items-center mt-8 lg:mt-0">
           <motion.div 
             initial={{ scale: 0.9, opacity: 0 }} 
             animate={{ scale: 1, opacity: 1 }} 
@@ -403,7 +409,7 @@ function AudioPlayer({ audioUrl }: { audioUrl: string }) {
         initial={{ opacity: 0, y: 50 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 1 }}
-        className="fixed bottom-6 right-6 z-50 flex items-center gap-3 bg-neutral-900/80 backdrop-blur-md border border-neutral-800 px-4 py-3 rounded-full shadow-2xl"
+        className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 flex items-center gap-2 sm:gap-3 bg-neutral-900/80 backdrop-blur-md border border-neutral-800 px-3 py-2 sm:px-4 sm:py-3 rounded-full shadow-2xl scale-90 sm:scale-100 origin-bottom-right"
       >
         <div className="flex flex-col mx-2 justify-center h-full">
           <div className="flex items-end gap-[2px] h-3">
